@@ -8,12 +8,20 @@ const TEST_ANSWER_B = 467835;
 // ======= Day 03 ======
 
 const DIGITS = /[0-9]/;
+const GEAR = '*';
+const EMPTY_SPACE = /\./;
+
 type PartNumber = {
   value: string;
   y: number;
+  xStart: number;
+  xEnd: number;
+};
+
+type Gear = {
+  y: number;
   x: number;
 };
-type Star = Omit<PartNumber, 'value'>;
 
 const transformInputData = (inputData: string[]) => {
   //parse input if required
@@ -21,7 +29,6 @@ const transformInputData = (inputData: string[]) => {
 };
 
 const isSymbolInRange = (data: string[][], rangeCenterY: number, rangeCenterX: number): boolean => {
-  const EMPTY_SPACE = /\./;
   let found = false;
 
   for (let y = rangeCenterY - 1; y <= rangeCenterY + 1; y++) {
@@ -36,7 +43,6 @@ const isSymbolInRange = (data: string[][], rangeCenterY: number, rangeCenterX: n
 
 const collectPartNumbers = (data: string[][]) => {
   const partNumbers: PartNumber[] = [];
-
   let digitsSet = '';
   let isPartNumber = false;
 
@@ -47,7 +53,7 @@ const collectPartNumbers = (data: string[][]) => {
         isPartNumber = isPartNumber ? isPartNumber : isSymbolInRange(data, i, k);
         if (k === data[i].length - 1) {
           if (isPartNumber) {
-            partNumbers.push({ value: digitsSet, y: i, x: k - digitsSet.length });
+            partNumbers.push({ value: digitsSet, y: i, xStart: k - digitsSet.length, xEnd: k - 1 });
           }
           digitsSet = '';
           isPartNumber = false;
@@ -55,7 +61,7 @@ const collectPartNumbers = (data: string[][]) => {
       } else {
         if (digitsSet) {
           if (isPartNumber) {
-            partNumbers.push({ value: digitsSet, y: i, x: k - digitsSet.length });
+            partNumbers.push({ value: digitsSet, y: i, xStart: k - digitsSet.length, xEnd: k - 1 });
           }
           digitsSet = '';
           isPartNumber = false;
@@ -82,25 +88,25 @@ const taskA = (inputData: string[]): number => {
 const taskB = (inputData: string[]): number => {
   const data = transformInputData(inputData);
   const partNumbers = collectPartNumbers(data);
-  const stars: Star[] = [];
+  const gears: Gear[] = [];
 
   for (let i = 0; i < data.length; i += 1) {
     for (let k = 0; k < data[i].length; k += 1) {
-      if (data[i][k] === '*') {
-        stars.push({ y: i, x: k });
+      if (data[i][k] === GEAR) {
+        gears.push({ y: i, x: k });
       }
     }
   }
 
   let ratio = 0;
 
-  stars.forEach((star) => {
+  gears.forEach((gear) => {
     const partNumbersInRange = partNumbers.filter(
       (partNumber) =>
-        partNumber.y >= star.y - 1 &&
-        partNumber.y <= star.y + 1 &&
-        star.x - 1 <= partNumber.x + partNumber.value.length - 1 &&
-        star.x + 1 >= partNumber.x
+        partNumber.y >= gear.y - 1 &&
+        partNumber.y <= gear.y + 1 &&
+        partNumber.xEnd >= gear.x - 1 &&
+        partNumber.xStart <= gear.x + 1
     );
     if (partNumbersInRange.length && partNumbersInRange.length === 2) {
       ratio = ratio + Number(partNumbersInRange[0].value) * Number(partNumbersInRange[1].value);
