@@ -3,68 +3,111 @@ import { getInputDataForDay, getTestADataForDay, getTestBDataForDay } from '../u
 const DAY_NUMBER = 3;
 const DAY_NUMBER_FORMATTED = DAY_NUMBER.toString(10).padStart(2, '0');
 const TEST_ANSWER_A = 4361;
-const TEST_ANSWER_B = 0;
+const TEST_ANSWER_B = 467835;
 
 // ======= Day 03 ======
 
-const digits = /[0-9]/;
-// const digits1 = '0123456789';
+const DIGITS = /[0-9]/;
+type PartNumber = {
+  value: string;
+  y: number;
+  x: number;
+};
+type Star = Omit<PartNumber, 'value'>;
 
 const transformInputData = (inputData: string[]) => {
   //parse input if required
   return inputData.map((line) => line.trim().split(''));
 };
 
-const findSymbol = (data: string[][], i: number, k: number): boolean => {
+const isSymbolInRange = (data: string[][], rangeCenterY: number, rangeCenterX: number): boolean => {
+  const EMPTY_SPACE = /\./;
   let found = false;
-  // console.log( ' ---------- ', i ,k);
-  for (let ii = i - 1; ii <= i + 1; ii++) {
-    for (let kk = k - 1; kk <= k + 1; kk++) {
-      // console.log( ii, ' - ', kk);
-      if (ii >= 0 && ii < data.length && kk >= 0 && kk < data[ii].length) {
-        found = found ? found : !data[ii][kk].match(digits) && !data[ii][kk].match(/\./);
-        // console.log(data[ii][kk], ' - ', found);
+
+  for (let y = rangeCenterY - 1; y <= rangeCenterY + 1; y++) {
+    for (let x = rangeCenterX - 1; x <= rangeCenterX + 1; x++) {
+      if (y >= 0 && y < data.length && x >= 0 && x < data[y].length) {
+        found = found ? found : !data[y][x].match(DIGITS) && !data[y][x].match(EMPTY_SPACE);
       }
     }
   }
   return found;
 };
 
-const taskA = (inputData: string[]): number => {
-  const data = transformInputData(inputData);
-  const partNumbers: string[] = [];
-  let partNumber = '';
+const collectPartNumbers = (data: string[][]) => {
+  const partNumbers: PartNumber[] = [];
+
+  let digitsSet = '';
   let isPartNumber = false;
-  console.table(data);
 
   for (let i = 0; i < data.length; i += 1) {
     for (let k = 0; k < data[i].length; k += 1) {
-      if (data[i][k].match(digits)) {
-        partNumber = partNumber.concat(data[i][k]);
-        isPartNumber = isPartNumber ? isPartNumber : findSymbol(data, i, k);
-      } else {
-        if (partNumber) {
+      if (data[i][k].match(DIGITS)) {
+        digitsSet = digitsSet.concat(data[i][k]);
+        isPartNumber = isPartNumber ? isPartNumber : isSymbolInRange(data, i, k);
+        if (k === data[i].length - 1) {
           if (isPartNumber) {
-            partNumbers.push(partNumber);
+            partNumbers.push({ value: digitsSet, y: i, x: k - digitsSet.length });
           }
-          partNumber = '';
+          digitsSet = '';
+          isPartNumber = false;
+        }
+      } else {
+        if (digitsSet) {
+          if (isPartNumber) {
+            partNumbers.push({ value: digitsSet, y: i, x: k - digitsSet.length });
+          }
+          digitsSet = '';
           isPartNumber = false;
         }
       }
     }
   }
-  console.table(partNumbers);
-  const answer = partNumbers.reduce((summ, current) => summ + Number(current), 0);
 
-  return answer;
+  return partNumbers;
+};
+
+const taskA = (inputData: string[]): number => {
+  const data = transformInputData(inputData);
+  const partNumbers = collectPartNumbers(data);
+
+  const partNumbersSumm = partNumbers.reduce(
+    (summ, partNumber) => summ + Number(partNumber.value),
+    0
+  );
+
+  return partNumbersSumm;
 };
 
 const taskB = (inputData: string[]): number => {
   const data = transformInputData(inputData);
+  const partNumbers = collectPartNumbers(data);
+  const stars: Star[] = [];
 
-  const answer = data.length; // your solution here
+  for (let i = 0; i < data.length; i += 1) {
+    for (let k = 0; k < data[i].length; k += 1) {
+      if (data[i][k] === '*') {
+        stars.push({ y: i, x: k });
+      }
+    }
+  }
 
-  return answer;
+  let ratio = 0;
+
+  stars.forEach((star) => {
+    const partNumbersInRange = partNumbers.filter(
+      (partNumber) =>
+        partNumber.y >= star.y - 1 &&
+        partNumber.y <= star.y + 1 &&
+        star.x - 1 <= partNumber.x + partNumber.value.length - 1 &&
+        star.x + 1 >= partNumber.x
+    );
+    if (partNumbersInRange.length && partNumbersInRange.length === 2) {
+      ratio = ratio + Number(partNumbersInRange[0].value) * Number(partNumbersInRange[1].value);
+    }
+  });
+
+  return ratio;
 };
 
 try {
@@ -74,7 +117,7 @@ try {
   const testAnswerPartA = taskA(testDataA);
   const testAnswerPartB = taskB(testDataB ? testDataB : testDataA);
   const answerPartA = taskA(inputData);
-  // const answerPartB = taskB(inputData);
+  const answerPartB = taskB(inputData);
 
   console.log(
     `Day ${DAY_NUMBER_FORMATTED}, Task A test: ${
@@ -90,7 +133,7 @@ try {
     } (answer is ${testAnswerPartB})`
   );
 
-  // console.log(`Day ${DAY_NUMBER_FORMATTED}, Task B answer: ${answerPartB}`);
+  console.log(`Day ${DAY_NUMBER_FORMATTED}, Task B answer: ${answerPartB}`);
 } catch (error) {
   console.error('Error: ', (error as Error).message);
 }
