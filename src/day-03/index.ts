@@ -31,10 +31,10 @@ const transformInputData = (inputData: string[]) => {
 const isSymbolInRange = (data: string[][], rangeCenterY: number, rangeCenterX: number): boolean => {
   let found = false;
 
-  for (let y = rangeCenterY - 1; y <= rangeCenterY + 1; y++) {
-    for (let x = rangeCenterX - 1; x <= rangeCenterX + 1; x++) {
+  for (let y = rangeCenterY - 1; y <= rangeCenterY + 1 && !found; y++) {
+    for (let x = rangeCenterX - 1; x <= rangeCenterX + 1 && !found; x++) {
       if (y >= 0 && y < data.length && x >= 0 && x < data[y].length) {
-        found = found ? found : !data[y][x].match(DIGITS) && !data[y][x].match(EMPTY_SPACE);
+        found = !data[y][x].match(DIGITS) && !data[y][x].match(EMPTY_SPACE);
       }
     }
   }
