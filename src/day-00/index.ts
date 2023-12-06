@@ -12,19 +12,25 @@ const transformInputData = (inputData: string[]) => {
   return inputData;
 };
 
-const taskA = (inputData: string[]): number => {
+const taskA = (inputData: string[], option?: string): number => {
   const data = transformInputData(inputData);
+  const timer = option ? `TaskA ${option}` : 'TaskA';
+  console.time(timer);
 
   const answer = data.length; // your solution here
 
+  console.timeEnd(timer);
   return answer;
 };
 
-const taskB = (inputData: string[]): number => {
+const taskB = (inputData: string[], option?: string): number => {
   const data = transformInputData(inputData);
+  const timer = option ? `TaskB ${option}` : 'TaskB';
+  console.time(timer);
 
   const answer = data.length; // your solution here
 
+  console.timeEnd(timer);
   return answer;
 };
 
@@ -32,14 +38,14 @@ try {
   const inputData = getInputDataForDay(DAY_NUMBER);
   const testDataA = getTestADataForDay(DAY_NUMBER);
   const testDataB = getTestBDataForDay(DAY_NUMBER);
-  const testAnswerPartA = taskA(testDataA);
-  const testAnswerPartB = taskB(testDataB ? testDataB : testDataA);
+  const testAnswerPartA = taskA(testDataA, 'test');
   const answerPartA = taskA(inputData);
+  const testAnswerPartB = taskB(testDataB ? testDataB : testDataA, 'test');
   const answerPartB = taskB(inputData);
 
   console.log(
     `Day ${DAY_NUMBER_FORMATTED}, Task A test: ${
-      testAnswerPartA === TEST_ANSWER_A ? 'passed' : 'failed!'
+      testAnswerPartA === TEST_ANSWER_A ? 'PASSED' : 'FAILED!'
     } (answer is ${testAnswerPartA})`
   );
 
@@ -47,7 +53,7 @@ try {
 
   console.log(
     `Day ${DAY_NUMBER_FORMATTED}, Task B test: ${
-      testAnswerPartB === TEST_ANSWER_B ? 'passed' : 'failed! '
+      testAnswerPartB === TEST_ANSWER_B ? 'PASSED' : 'FAILED!'
     } (answer is ${testAnswerPartB})`
   );
 
