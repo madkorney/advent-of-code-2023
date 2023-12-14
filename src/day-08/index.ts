@@ -1,4 +1,9 @@
-import { getInputDataForDay, getTestADataForDay, getTestBDataForDay } from '../util/index.js';
+import {
+  getInputDataForDay,
+  getTestADataForDay,
+  getTestBDataForDay,
+  multiLcm,
+} from '../util/index.js';
 
 const DAY_NUMBER = 8;
 const DAY_NUMBER_FORMATTED = DAY_NUMBER.toString(10).padStart(2, '0');
@@ -11,26 +16,6 @@ type TNode = {
   left: string;
   right: string;
   valueTail: string;
-};
-
-const gcd = (inputA: number, inputB: number) => {
-  let a = inputA > inputB ? inputA : inputB;
-  let b = inputA > inputB ? inputB : inputA;
-  while (true) {
-    if (b == 0) return a;
-    a %= b;
-    if (a == 0) return b;
-    b %= a;
-  }
-};
-
-const lcm = (a: number, b: number) => {
-  return (a / gcd(a, b)) * b;
-};
-
-const multiLcm = (arr: number[]): number => {
-  if (arr.length === 2) return lcm(arr[0], arr[1]);
-  return lcm(arr[0], multiLcm(arr.slice(1)));
 };
 
 const transformInputData = (inputData: string[]) => {
@@ -57,12 +42,13 @@ const taskA = (inputData: string[], option?: string): number => {
 
   let commandIndex = 0;
   let steps = 0;
-  let stepNode = nodes['AAA'];
+  let currentNode = nodes['AAA'];
   const finish = 'ZZZ';
 
-  while (stepNode.value !== finish) {
+  while (currentNode.value !== finish) {
     steps++;
-    stepNode = commands[commandIndex] === 'L' ? nodes[stepNode!.left] : nodes[stepNode!.right];
+    currentNode =
+      commands[commandIndex] === 'L' ? nodes[currentNode!.left] : nodes[currentNode!.right];
     commandIndex = commandIndex < commands.length - 1 ? (commandIndex += 1) : 0;
   }
 
@@ -78,17 +64,17 @@ const taskB = (inputData: string[], option?: string): number => {
   let commandIndex = 0;
   const steps: number[] = [];
 
-  const stepNodes: TNode[] = [];
+  const currentNodes: TNode[] = [];
   Object.values(nodes)
     .filter(({ value }) => value.split('')[2] === 'A')
-    .forEach((node) => stepNodes.push(node));
+    .forEach((node) => currentNodes.push(node));
 
-  for (let i = 0; i < stepNodes.length; i++) {
+  for (let i = 0; i < currentNodes.length; i++) {
     let currentSteps = 0;
-    while (stepNodes[i].valueTail !== 'Z') {
+    while (currentNodes[i].valueTail !== 'Z') {
       currentSteps++;
-      stepNodes[i] =
-        commands[commandIndex] === 'L' ? nodes[stepNodes[i].left] : nodes[stepNodes[i].right];
+      currentNodes[i] =
+        commands[commandIndex] === 'L' ? nodes[currentNodes[i].left] : nodes[currentNodes[i].right];
       commandIndex = commandIndex < commands.length - 1 ? (commandIndex += 1) : 0;
     }
     steps.push(currentSteps);
